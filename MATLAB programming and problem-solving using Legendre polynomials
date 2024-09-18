@@ -1,0 +1,51 @@
+clear
+clc
+function Pn = legendre_poly(n)
+    if n == 0
+        Pn = @(x) ones(size(x));
+    elseif n == 1
+        Pn = @(x) x;
+    else       
+        Pn_1 = legendre_poly(n-1); 
+        Pn_2 = legendre_poly(n-2); 
+        Pn = @(x) ((2*n-1)*x.*Pn_1(x) - (n-1)*Pn_2(x)) / n; 
+    end
+end
+x_vals = linspace(-1, 1, 1000); 
+figure;
+hold on;
+for n = 0:4
+    Pn = legendre_poly(n); 
+    plot(x_vals, Pn(x_vals), 'LineWidth', 2); 
+end
+hold off;
+xlabel('x');
+ylabel('P_n(x)');
+title('First Five Legendre Polynomials');
+legend('P_0(x)', 'P_1(x)', 'P_2(x)', 'P_3(x)', 'P_4(x)');
+grid on;
+f = @(x) exp(x);
+n_quad = 5; 
+Pn_coeffs = legendreP(n_quad);
+nodes = roots(Pn_coeffs);  
+weights = 2 ./ ((1 - nodes.^2) .* (polyval(polyder(Pn_coeffs), nodes)).^2);
+integral_approx = sum(weights .* f(nodes));
+fprintf('Approximate integral using Gauss-Legendre quadrature: %.6f\n', integral_approx);
+rhs = @(x) sin(pi*x); 
+n_terms = 5;  
+coeffs = zeros(n_terms, 1); 
+for n = 0:n_terms-1
+    Pn = legendre_poly(n);
+    coeffs(n+1) = integral(@(x) rhs(x).*Pn(x), -1, 1) / (2/(2*n+1));
+end
+u_approx = @(x) 0;
+for n = 0:n_terms-1
+    Pn = legendre_poly(n);
+    u_approx = @(x) u_approx(x) + coeffs(n+1) .* Pn(x);  % Sum the series
+end
+figure;
+fplot(u_approx, [-1, 1], 'LineWidth', 2);
+xlabel('x');
+ylabel('u(x)');
+title('Approximate Solution to the BVP Using Legendre Polynomials');
+grid on;
