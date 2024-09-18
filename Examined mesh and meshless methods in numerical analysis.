@@ -1,0 +1,12 @@
+clear
+clc
+L = 1;                   
+n = 100;                
+x = linspace(0, L, n);   
+h = x(2) - x(1);        
+f = -2 * ones(size(x));  
+u_fd = zeros(size(x));
+A = (diag(-2*ones(n,1)) + diag(ones(n-1,1),1) + diag(ones(n-1,1),-1)) / h^2;
+A(1,:) = 0; A(end,:) = 0; 
+A(1,1) = 1; A(end,end) = 1;  
+f(1) = 0; f(end) = 0;
