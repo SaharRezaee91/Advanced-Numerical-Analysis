@@ -1,0 +1,24 @@
+clear
+clc
+N = 5;  
+y0 = 0;
+f = @(y) y.^2;
+rhs = @(x) ones(size(x)); 
+x_vals = linspace(0, 2, 100); 
+y_terms = zeros(N, length(x_vals));
+y_terms(1, :) = y0;
+A_terms = zeros(N, length(x_vals));
+A_terms(1, :) = f(y_terms(1, :)); 
+for n = 2:N
+    A_terms(n, :) = f(sum(y_terms(1:n-1, :), 1));  % f(y0 + y1 + ... + y_(n-1))
+end
+for n = 2:N
+    y_terms(n, :) = cumtrapz(x_vals, rhs(x_vals) - sum(A_terms(1:n-1, :), 1));
+end
+y_approx = sum(y_terms, 1); 
+figure;
+plot(x_vals, y_approx, 'r-', 'LineWidth', 2); 
+xlabel('x');
+ylabel('y(x)');
+title('Solution of the Nonlinear ODE Using the Adomian Decomposition Method');
+grid on;
