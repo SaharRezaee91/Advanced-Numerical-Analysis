@@ -1,0 +1,59 @@
+clear
+clc
+function Tn = chebyshev_poly(n)
+    if n == 0
+        Tn = @(x) ones(size(x));  
+    elseif n == 1
+        Tn = @(x) x; 
+    else        
+        Tn_1 = chebyshev_poly(n-1);
+        Tn_2 = chebyshev_poly(n-2);  
+        Tn = @(x) 2*x.*Tn_1(x) - Tn_2(x); 
+    end
+end
+x_vals = linspace(-1, 1, 1000);  
+figure;
+hold on;
+for n = 0:4
+    Tn = chebyshev_poly(n);  
+    plot(x_vals, Tn(x_vals), 'LineWidth', 2); 
+end
+hold off;
+xlabel('x');
+ylabel('T_n(x)');
+title('First Five Chebyshev Polynomials');
+legend('T_0(x)', 'T_1(x)', 'T_2(x)', 'T_3(x)', 'T_4(x)');
+grid on;
+f = @(x) 1 ./ (1 + 25*x.^2);
+n_nodes = 10; 
+theta = pi * (0:n_nodes) / n_nodes;  
+cheb_nodes = cos(theta);
+f_vals = f(cheb_nodes);
+poly_interp = polyfit(cheb_nodes, f_vals, n_nodes);
+figure;
+plot(x_vals, f(x_vals), 'k-', 'LineWidth', 2); hold on;
+plot(x_vals, polyval(poly_interp, x_vals), 'r--', 'LineWidth', 1.5);  % Interpolation
+scatter(cheb_nodes, f_vals, 'bo', 'filled');  % Chebyshev nodes
+xlabel('x');
+ylabel('f(x)');
+title('Chebyshev Interpolation of f(x) = 1/(1 + 25*x^2)');
+legend('Original Function', 'Chebyshev Interpolation', 'Chebyshev Nodes');
+grid on;
+rhs = @(x) sin(pi*x); 
+n_terms = 5; 
+coeffs = zeros(n_terms, 1); 
+for n = 0:n_terms-1
+    Tn = chebyshev_poly(n);
+    coeffs(n+1) = integral(@(x) rhs(x).*Tn(x) ./ sqrt(1 - x.^2), -1, 1) * (2 / (pi*(n+1))); 
+end
+u_approx = @(x) 0;  
+for n = 0:n_terms-1
+    Tn = chebyshev_poly(n);
+    u_approx = @(x) u_approx(x) + coeffs(n+1) .* Tn(x);  
+end
+figure;
+fplot(u_approx, [-1, 1], 'LineWidth', 2);
+xlabel('x');
+ylabel('u(x)');
+title('Approximate Solution to the Boundary Value Problem Using Chebyshev Polynomials');
+grid on;
